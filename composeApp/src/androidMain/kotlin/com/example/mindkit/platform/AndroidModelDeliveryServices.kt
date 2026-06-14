@@ -8,66 +8,69 @@ import com.example.mindkit.core.platform.ModelFileStorage
 import com.example.mindkit.core.platform.ZipExtractProgress
 import com.example.mindkit.core.platform.ZipExtractor
 import com.example.mindkit.core.platform.ZipModelDownloader
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.contentLength
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.readAvailable
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import java.security.MessageDigest
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
-class AndroidZipModelDownloader(
-    private val client: HttpClient,
-) : ZipModelDownloader {
+private const val DOWNLOAD_CONNECT_TIMEOUT_MILLIS = 15_000
+private const val DOWNLOAD_READ_TIMEOUT_MILLIS = 30 * 60 * 1_000
+private const val DOWNLOAD_BUFFER_SIZE = 32 * 1_024
+
+class AndroidZipModelDownloader : ZipModelDownloader {
     override fun downloadZip(
         url: String,
         destinationZipPath: String,
     ): Flow<ModelDownloadProgress> = flow {
         require(!url.contains("YOUR_CDN_URL")) { "Configure a real model download URL" }
 
-        val response: HttpResponse = client.get(url)
-        require(response.status.value in 200..299) {
-            "Model download failed with HTTP ${response.status.value}"
-        }
-        val totalBytes = response.contentLength()
-        require(totalBytes == null || totalBytes > 0L) {
-            "Model download returned an empty response"
-        }
         val destination = File(destinationZipPath).apply { parentFile?.mkdirs() }
+        destination.delete()
 
-        emitAll(writeChunksToFile(response.body(), destination, totalBytes))
-    }.flowOn(Dispatchers.IO)
-
-    private fun writeChunksToFile(
-        channel: ByteReadChannel,
-        destination: File,
-        totalBytes: Long?,
-    ): Flow<ModelDownloadProgress> = flow {
-        FileOutputStream(destination).use { output ->
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var downloaded = 0L
-            while (true) {
-                val count = channel.readAvailable(buffer)
-                if (count < 0) break
-                if (count == 0) continue
-                output.write(buffer, 0, count)
-                downloaded += count
-                emit(ModelDownloadProgress(downloaded, totalBytes))
-            }
-            require(downloaded > 0L) { "Downloaded model ZIP is empty" }
+        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+            instanceFollowRedirects = true
+            connectTimeout = DOWNLOAD_CONNECT_TIMEOUT_MILLIS
+            readTimeout = DOWNLOAD_READ_TIMEOUT_MILLIS
+            requestMethod = "GET"
+            setRequestProperty("Accept-Encoding", "identity")
         }
-    }
+
+        try {
+            val status = connection.responseCode
+            require(status in 200..299) {
+                "Model download failed with HTTP $status"
+            }
+            val totalBytes = connection.contentLengthLong.takeIf { it > 0L }
+
+            connection.inputStream.use { input ->
+                FileOutputStream(destination).use { output ->
+                    val buffer = ByteArray(DOWNLOAD_BUFFER_SIZE)
+                    var downloaded = 0L
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        output.write(buffer, 0, count)
+                        downloaded += count
+                        emit(ModelDownloadProgress(downloaded, totalBytes))
+                    }
+                    require(downloaded > 0L) { "Downloaded model ZIP is empty" }
+                }
+            }
+        } catch (error: Throwable) {
+            destination.delete()
+            throw error
+        } finally {
+            connection.disconnect()
+        }
+    }.flowOn(Dispatchers.IO)
 }
 
 class AndroidZipExtractor : ZipExtractor {

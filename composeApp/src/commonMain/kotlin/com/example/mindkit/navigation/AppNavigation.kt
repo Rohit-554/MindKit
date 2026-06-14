@@ -5,9 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.savedstate.serialization.SavedStateConfiguration
-import com.example.mindkit.ui.screens.HomeScreen
-import com.example.mindkit.ui.screens.NotificationDemoScreen
-import com.example.mindkit.ui.screens.PermissionDemoScreen
+import com.example.mindkit.feature.chat.presentation.ChatScreen
+import com.example.mindkit.feature.modeldownload.presentation.ModelDownloadScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -18,27 +17,20 @@ fun AppNavigation() {
         SavedStateConfiguration {
             serializersModule = SerializersModule {
                 polymorphic(NavKey::class) {
-                    subclass(Screen.Home::class)
-                    subclass(Screen.Permissions::class)
-                    subclass(Screen.Notifications::class)
+                    subclass(Screen.ModelSetup::class)
+                    subclass(Screen.Chat::class)
                 }
             }
         },
-        Screen.Home
+        Screen.ModelSetup,
     )
 
-    Crossfade(targetState = backStack.lastOrNull() ?: Screen.Home) { screen ->
+    Crossfade(targetState = backStack.lastOrNull() ?: Screen.ModelSetup) { screen ->
         when (screen) {
-            is Screen.Home -> HomeScreen(
-                onNavigateToPermissions = { backStack.add(Screen.Permissions) },
-                onNavigateToNotifications = { backStack.add(Screen.Notifications) },
+            is Screen.ModelSetup -> ModelDownloadScreen(
+                onNavigateToChat = { backStack.add(Screen.Chat) },
             )
-            is Screen.Permissions -> PermissionDemoScreen(
-                onBack = { backStack.removeLastOrNull() },
-            )
-            is Screen.Notifications -> NotificationDemoScreen(
-                onBack = { backStack.removeLastOrNull() },
-            )
+            is Screen.Chat -> ChatScreen()
         }
     }
 }

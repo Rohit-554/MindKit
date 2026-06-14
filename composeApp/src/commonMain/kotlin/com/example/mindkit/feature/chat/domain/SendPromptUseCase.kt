@@ -9,8 +9,12 @@ class SendPromptUseCase(
     private val localAiRepository: LocalAiRepository,
     private val activeManifest: LocalModelManifest,
 ) {
-    operator fun invoke(mode: AiTaskMode, userInput: String): Flow<AiToken> {
-        val finalPrompt = promptBuilder.buildPrompt(mode, userInput)
-        return localAiRepository.generate(finalPrompt, activeManifest.generationDefaults)
+    operator fun invoke(
+        mode: AiTaskMode,
+        userInput: String,
+        conversationHistory: List<ChatMessage>,
+    ): Flow<AiToken> {
+        val request = promptBuilder.buildRequest(mode, userInput, conversationHistory)
+        return localAiRepository.generate(request, activeManifest.generationDefaults)
     }
 }

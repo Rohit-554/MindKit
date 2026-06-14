@@ -2,6 +2,7 @@ package com.example.mindkit.platform
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Bundle
 import com.example.mindkit.feature.modeldownload.domain.DefaultModels
 import com.example.mindkit.feature.modeldownload.domain.LocalModelManifest
 import com.example.mindkit.feature.modeldownload.domain.ModelDelivery
@@ -21,18 +22,27 @@ class AndroidModelManifestProvider(
         return defaults.copy(
             delivery = defaultDelivery.copy(
                 downloadUrl = metadata
-                    ?.getString(MODEL_DOWNLOAD_URL)
+                    .stringValue(MODEL_DOWNLOAD_URL)
                     ?.takeIf { it.isNotBlank() }
                     ?: defaultDelivery.downloadUrl,
                 checksumSha256 = metadata
-                    ?.getString(MODEL_CHECKSUM_SHA256)
+                    .stringValue(MODEL_CHECKSUM_SHA256)
                     ?.takeIf { it.isNotBlank() },
                 expectedSizeBytes = metadata
-                    ?.getString(MODEL_EXPECTED_SIZE_BYTES)
-                    ?.toLongOrNull(),
+                    .longValue(MODEL_EXPECTED_SIZE_BYTES),
             ),
         )
     }
+
+    private fun Bundle?.stringValue(key: String): String? =
+        this?.get(key)?.toString()
+
+    private fun Bundle?.longValue(key: String): Long? =
+        when (val value = this?.get(key)) {
+            is Number -> value.toLong()
+            is String -> value.toLongOrNull()
+            else -> null
+        }
 
     private companion object {
         const val MODEL_DOWNLOAD_URL = "com.example.mindkit.MODEL_DOWNLOAD_URL"

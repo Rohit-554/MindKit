@@ -28,6 +28,7 @@ class ChatViewModel(
 
     private var generationJob: Job? = null
     private var messageSequence = 0L
+    private var historySequence = 0L
 
     init {
         viewModelScope.launch {
@@ -46,6 +47,8 @@ class ChatViewModel(
             is ChatAction.ModeSelected -> _state.update { it.copy(selectedMode = action.mode) }
             ChatAction.SendClicked -> send()
             ChatAction.StopClicked -> stop()
+            ChatAction.NewChatClicked -> startNewChat()
+            is ChatAction.HistorySelected -> openHistory(action.id)
             ChatAction.ClearChatClicked -> clearChat()
             ChatAction.SettingsClicked -> Unit
         }
@@ -65,8 +68,9 @@ class ChatViewModel(
         if (!_state.value.canSend) return
         val input = _state.value.input.trim()
         val mode = _state.value.selectedMode
+        val conversationHistory = _state.value.messages
         val replyMessage = prepareConversationEntry(input)
-        streamReply(mode, input, replyMessage.id)
+        streamReply(mode, input, conversationHistory, replyMessage.id)
     }
 
     private fun prepareConversationEntry(input: String): ChatMessage {
@@ -83,9 +87,14 @@ class ChatViewModel(
         return replyMessage
     }
 
-    private fun streamReply(mode: AiTaskMode, input: String, replyId: String) {
+    private fun streamReply(
+        mode: AiTaskMode,
+        input: String,
+        conversationHistory: List<ChatMessage>,
+        replyId: String,
+    ) {
         generationJob = viewModelScope.launch {
-            sendPrompt(mode, input).collect { token ->
+            sendPrompt(mode, input, conversationHistory).collect { token ->
                 when (token) {
                     is AiToken.Text -> appendTokenToReply(replyId, token.value)
                     AiToken.Completed -> finishGeneration()
@@ -127,6 +136,52 @@ class ChatViewModel(
         }
     }
 
+    private fun startNewChat() {
+        stop()
+        _state.update { state ->
+            state.copy(
+                selectedMode = AiTaskMode.QuickAsk,
+                input = "",
+                messages = emptyList(),
+                chatHistory = archiveCurrentChat(state),
+                isGenerating = false,
+                errorMessage = null,
+            )
+        }
+    }
+
+    private fun openHistory(id: String) {
+        val selectedChat = _state.value.chatHistory.firstOrNull { it.id == id } ?: return
+        stop()
+        _state.update {
+            it.copy(
+                selectedMode = selectedChat.mode,
+                input = "",
+                messages = selectedChat.messages,
+                isGenerating = false,
+                errorMessage = null,
+            )
+        }
+    }
+
+    private fun archiveCurrentChat(state: ChatUiState): List<ChatHistoryItem> {
+        val messages = state.messages.filter { it.content.isNotBlank() }
+        val firstUserMessage = messages.firstOrNull { it.role == ChatRole.User } ?: return state.chatHistory
+        val title = firstUserMessage.content
+            .lineSequence()
+            .joinToString(" ")
+            .trim()
+            .take(HISTORY_TITLE_LENGTH)
+
+        val item = ChatHistoryItem(
+            id = (historySequence++).toString(),
+            title = title,
+            mode = state.selectedMode,
+            messages = messages,
+        )
+        return (listOf(item) + state.chatHistory).take(MAX_HISTORY_ITEMS)
+    }
+
     private fun appendTokenToReply(replyId: String, token: String) {
         _state.update { state ->
             state.copy(
@@ -151,5 +206,10 @@ class ChatViewModel(
             content = content,
             createdAtMillis = sequence,
         )
+    }
+
+    private companion object {
+        const val MAX_HISTORY_ITEMS = 10
+        const val HISTORY_TITLE_LENGTH = 44
     }
 }

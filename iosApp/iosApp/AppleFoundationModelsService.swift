@@ -17,6 +17,14 @@ final class AppleFoundationModelsService: NSObject, AppleFoundationModelsBridge 
             return
         }
 
+        #if targetEnvironment(simulator)
+        callback.onResult(
+            available: false,
+            statusText: "Apple Intelligence is not available on the Simulator — run on a real device"
+        )
+        return
+        #endif
+
         #if canImport(FoundationModels)
         switch SystemLanguageModel.default.availability {
         case .available:

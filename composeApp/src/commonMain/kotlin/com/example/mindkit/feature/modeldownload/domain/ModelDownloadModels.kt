@@ -34,7 +34,11 @@ data class LocalModelManifest(
 
 sealed interface ModelDownloadState {
     data object NotDownloaded : ModelDownloadState
-    data class DownloadingZip(val progress: Float?) : ModelDownloadState
+    data class DownloadingZip(
+        val progress: Float?,
+        val downloadedBytes: Long = 0L,
+        val totalBytes: Long? = null,
+    ) : ModelDownloadState
     data object VerifyingZip : ModelDownloadState
     data class ExtractingZip(val progress: Float?) : ModelDownloadState
     data object VerifyingExtractedFiles : ModelDownloadState
@@ -51,9 +55,9 @@ object DefaultModels {
         runtime = ModelRuntime.Onnx,
         delivery = ModelDelivery.ZipBundle(
             fileName = "gemma-3-270m-onnx.zip",
-            downloadUrl = "https://YOUR_CDN_URL/models/gemma-3-270m/gemma-3-270m-onnx.zip",
-            expectedSizeBytes = null,
-            checksumSha256 = null,
+            downloadUrl = "https://github.com/Rohit-554/MindKit/releases/download/gemma-3-270m-onnx-v1/gemma-3-270m-onnx.zip",
+            expectedSizeBytes = 251500897,
+            checksumSha256 = "525a3c9f30208638d9bbb40f85e18d345779b2d46760892497f8da63a08d094d",
         ),
         entryFileName = "genai_config.json",
         tokenizerFileName = "tokenizer.json",

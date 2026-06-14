@@ -6,11 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface Screen : NavKey {
     @Serializable
-    data object Home : Screen
+    data object ModelSetup : Screen
 
     @Serializable
-    data object Permissions : Screen
-
-    @Serializable
-    data object Notifications : Screen
+    data object Chat : Screen
 }

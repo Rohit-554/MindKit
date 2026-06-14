@@ -27,7 +27,7 @@ actual fun platformModule(): Module = module {
     single<LocalModelManifest> { get<AndroidModelManifestProvider>().resolveManifest() }
     single<LocalAiEngine> { AndroidOnnxLocalAiEngine() }
     single<DeviceCapabilityChecker> { AndroidDeviceCapabilityChecker() }
-    single<ZipModelDownloader> { AndroidZipModelDownloader(get()) }
+    single<ZipModelDownloader> { AndroidZipModelDownloader() }
     single<ZipExtractor> { AndroidZipExtractor() }
     single<ModelFileStorage> { AndroidModelFileStorage(androidContext()) }
     single<ChecksumValidator> { AndroidChecksumValidator() }

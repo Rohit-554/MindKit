@@ -29,6 +29,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
             implementation(libs.workmanager)
+            implementation("com.microsoft.onnxruntime:onnxruntime-android:1.25.1")
             implementation("ai.onnxruntime.genai:onnxruntime-genai-android:0.14.0@aar")
         }
         iosMain.dependencies {
@@ -40,6 +41,7 @@ kotlin {
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
+            implementation(compose.materialIconsExtended)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)

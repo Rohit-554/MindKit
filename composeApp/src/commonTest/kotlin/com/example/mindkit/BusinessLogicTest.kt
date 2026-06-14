@@ -9,6 +9,7 @@ import com.example.mindkit.core.platform.ZipExtractor
 import com.example.mindkit.core.platform.ZipModelDownloader
 import com.example.mindkit.feature.chat.data.LocalAiRepository
 import com.example.mindkit.feature.chat.domain.AiGenerationConfig
+import com.example.mindkit.feature.chat.domain.AiChatRequest
 import com.example.mindkit.feature.chat.domain.AiTaskMode
 import com.example.mindkit.feature.chat.domain.AiToken
 import com.example.mindkit.feature.chat.domain.PromptBuilder
@@ -32,13 +33,13 @@ import kotlin.test.assertTrue
 class BusinessLogicTest {
     @Test
     fun promptBuilderAppliesSelectedModeAndTrimsInput() {
-        val prompt = PromptBuilder().buildPrompt(
+        val request = PromptBuilder().buildRequest(
             mode = AiTaskMode.Summarize,
             userInput = "  A long document  ",
         )
 
-        assertTrue(prompt.startsWith("Summarize the following text"))
-        assertTrue(prompt.endsWith("A long document"))
+        assertTrue(request.systemInstruction.contains("three short bullet points"))
+        assertEquals("A long document", request.messages.single().content)
     }
 
     @Test
@@ -149,7 +150,7 @@ private class FakeLocalAiEngine : LocalAiEngine {
         return Result.success(Unit)
     }
 
-    override fun generate(prompt: String, config: AiGenerationConfig): Flow<AiToken> =
+    override fun generate(request: AiChatRequest, config: AiGenerationConfig): Flow<AiToken> =
         flowOf(AiToken.Completed)
 
     override suspend fun cancelGeneration() = Unit

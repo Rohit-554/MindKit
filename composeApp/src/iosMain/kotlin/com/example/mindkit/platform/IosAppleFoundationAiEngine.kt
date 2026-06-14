@@ -2,8 +2,10 @@ package com.example.mindkit.platform
 
 import com.example.mindkit.core.platform.DeviceCapabilityChecker
 import com.example.mindkit.core.platform.LocalAiEngine
+import com.example.mindkit.feature.chat.domain.AiChatRequest
 import com.example.mindkit.feature.chat.domain.AiGenerationConfig
 import com.example.mindkit.feature.chat.domain.AiToken
+import com.example.mindkit.feature.chat.domain.asPlainPrompt
 import com.example.mindkit.feature.modeldownload.domain.LocalModelManifest
 import com.example.mindkit.feature.modeldownload.domain.ModelRuntime
 import com.example.mindkit.feature.modelsettings.domain.AiEngineInfo
@@ -48,7 +50,7 @@ class IosAppleFoundationAiEngine(
         check(loaded) { statusText }
     }
 
-    override fun generate(prompt: String, config: AiGenerationConfig): Flow<AiToken> = callbackFlow {
+    override fun generate(request: AiChatRequest, config: AiGenerationConfig): Flow<AiToken> = callbackFlow {
         if (!loaded) {
             trySend(AiToken.Failed(statusText))
             close()
@@ -56,7 +58,7 @@ class IosAppleFoundationAiEngine(
         }
 
         requireAppleFoundationModelsBridge().generate(
-            prompt = prompt,
+            prompt = request.asPlainPrompt(),
             maxTokens = config.maxNewTokens,
             temperature = config.temperature.toDouble(),
             topP = config.topP.toDouble(),

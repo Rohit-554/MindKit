@@ -29,8 +29,15 @@ class ModelDownloadViewModel(
         viewModelScope.launch {
             if (checkModelAvailability()) {
                 initializeLocalAi().onSuccess {
-                    _state.update { it.copy(downloadState = ModelDownloadState.Ready(null)) }
+                    _state.update {
+                        it.copy(
+                            isCheckingModel = false,
+                            downloadState = ModelDownloadState.Ready(null),
+                        )
+                    }
                 }.onFailure(::showFailure)
+            } else {
+                _state.update { it.copy(isCheckingModel = false) }
             }
         }
     }
@@ -44,6 +51,7 @@ class ModelDownloadViewModel(
 
     private fun startDownload() {
         viewModelScope.launch {
+            _state.update { it.copy(isCheckingModel = false) }
             downloadModel().collect { downloadState ->
                 _state.update {
                     it.copy(
@@ -65,6 +73,7 @@ class ModelDownloadViewModel(
         localAiRepository.updateModelState(ModelState.Failed(message))
         _state.update {
             it.copy(
+                isCheckingModel = false,
                 downloadState = ModelDownloadState.Failed(message),
                 errorMessage = message,
             )

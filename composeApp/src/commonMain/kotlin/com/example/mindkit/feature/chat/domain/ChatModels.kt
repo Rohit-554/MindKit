@@ -1,10 +1,21 @@
 package com.example.mindkit.feature.chat.domain
 
 data class AiGenerationConfig(
-    val maxNewTokens: Int = 256,
-    val temperature: Float = 0.7f,
-    val topP: Float = 0.95f,
-    val stopSequences: List<String> = emptyList(),
+    val maxNewTokens: Int = 96,
+    val temperature: Float = 0.6f,
+    val topP: Float = 0.9f,
+    val topK: Int = 32,
+    val stopSequences: List<String> = listOf("<end_of_turn>"),
+)
+
+data class AiChatRequest(
+    val systemInstruction: String,
+    val messages: List<AiChatTurn>,
+)
+
+data class AiChatTurn(
+    val role: ChatRole,
+    val content: String,
 )
 
 sealed interface AiToken {
@@ -33,4 +44,17 @@ data class ChatMessage(
 enum class ChatRole {
     User,
     Assistant,
+}
+
+fun AiChatRequest.asPlainPrompt(): String = buildString {
+    appendLine(systemInstruction)
+    messages.forEach { message ->
+        val role = if (message.role == ChatRole.User) "User" else "Assistant"
+        appendLine()
+        append(role)
+        append(": ")
+        append(message.content)
+    }
+    appendLine()
+    append("Assistant:")
 }

@@ -1,6 +1,7 @@
 package com.example.mindkit.platform
 
 import com.example.mindkit.core.platform.LocalAiEngine
+import com.example.mindkit.feature.chat.domain.AiChatRequest
 import com.example.mindkit.feature.chat.domain.AiGenerationConfig
 import com.example.mindkit.feature.chat.domain.AiToken
 import com.example.mindkit.feature.modeldownload.domain.LocalModelManifest
@@ -26,7 +27,7 @@ class DesktopLocalAiEngine : LocalAiEngine {
         modelDirectoryPath: String?,
     ): Result<Unit> = Result.failure(UnsupportedOperationException("Desktop local AI is unsupported"))
 
-    override fun generate(prompt: String, config: AiGenerationConfig): Flow<AiToken> =
+    override fun generate(request: AiChatRequest, config: AiGenerationConfig): Flow<AiToken> =
         flowOf(AiToken.Failed("Desktop local AI is unsupported"))
 
     override suspend fun cancelGeneration() = Unit

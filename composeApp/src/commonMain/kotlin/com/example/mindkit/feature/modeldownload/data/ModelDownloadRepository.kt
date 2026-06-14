@@ -40,6 +40,7 @@ class ModelDownloadRepository(
         }
         val delivery = manifest.delivery as ModelDelivery.ZipBundle
         val storage = storage()
+        emit(ModelDownloadState.DownloadingZip(null))
         storage.clearTemp(manifest.id).getOrThrow()
         val tempZipPath = storage.getTempZipPath(manifest.id, delivery.fileName)
 
@@ -76,7 +77,11 @@ class ModelDownloadRepository(
                     error("Downloaded model exceeds the configured expected size")
                 }
             }
-            emit(ModelDownloadState.DownloadingZip(progress.progress))
+            emit(ModelDownloadState.DownloadingZip(
+                progress = progress.progress,
+                downloadedBytes = progress.downloadedBytes,
+                totalBytes = progress.totalBytes,
+            ))
         }
     }
 

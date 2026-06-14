@@ -2,6 +2,7 @@ package com.example.mindkit.feature.chat.data
 
 import com.example.mindkit.core.platform.LocalAiEngine
 import com.example.mindkit.feature.chat.domain.AiGenerationConfig
+import com.example.mindkit.feature.chat.domain.AiChatRequest
 import com.example.mindkit.feature.chat.domain.AiToken
 import com.example.mindkit.feature.modeldownload.domain.LocalModelManifest
 import com.example.mindkit.feature.modelsettings.domain.AiEngineInfo
@@ -39,8 +40,8 @@ class LocalAiRepository(
         _modelState.value = state
     }
 
-    fun generate(prompt: String, config: AiGenerationConfig): Flow<AiToken> =
-        localAiEngine.generate(prompt, config)
+    fun generate(request: AiChatRequest, config: AiGenerationConfig): Flow<AiToken> =
+        localAiEngine.generate(request, config)
 
     suspend fun cancelGeneration() = localAiEngine.cancelGeneration()
 }

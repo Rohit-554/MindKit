@@ -6,6 +6,15 @@ Android uses a downloaded ONNX model. iOS uses Apple Foundation Models (Apple In
 
 ---
 
+## Demo 
+<img width="200" height="450" alt="image" src="https://github.com/user-attachments/assets/966a146f-7890-41c0-a690-d5fc364f1691" />
+<img width="200" height="450" alt="image" src="https://github.com/user-attachments/assets/fbaa4a21-dcd3-4ddf-ab81-95d1a917c20c" />
+<img width="200" height="450" alt="image" src="https://github.com/user-attachments/assets/b2ec4d42-d194-4289-a9dc-5f0aa134b028" />
+<img width="200" height="450" alt="image" src="https://github.com/user-attachments/assets/fe42c589-8525-4a44-96b1-09a819271757" />
+<img width="200" height="450" alt="image" src="https://github.com/user-attachments/assets/58df6597-83b7-4659-aa39-ce48fe643c9c" />
+
+
+
 ## Features
 
 - **Quick Ask** - Get direct answers to anything

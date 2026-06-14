@@ -144,6 +144,34 @@ Point `mindkit.model.download.url` to your own hosted ZIP and update the SHA256 
 
 ---
 
+## Generation Configuration
+
+All generation parameters are defined in `AiGenerationConfig` (`composeApp/src/commonMain/kotlin/com/example/mindkit/feature/chat/domain/ChatModels.kt`) and apply to both Android and iOS.
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `maxNewTokens` | `96` | Maximum tokens to generate per response |
+| `temperature` | `0.6` | Randomness of output. Lower is more focused, higher is more creative |
+| `topP` | `0.9` | Nucleus sampling threshold. Keeps the top 90% probability mass |
+| `topK` | `32` | Limits sampling to the top K most likely tokens |
+| `stopSequences` | `["<end_of_turn>"]` | Tokens that signal the model to stop generating |
+
+To change the defaults, edit `AiGenerationConfig`:
+
+```kotlin
+data class AiGenerationConfig(
+    val maxNewTokens: Int = 256,       // increase for longer replies
+    val temperature: Float = 0.7f,     // 0.0 = deterministic, 1.0 = creative
+    val topP: Float = 0.9f,
+    val topK: Int = 40,
+    val stopSequences: List<String> = listOf("<end_of_turn>"),
+)
+```
+
+You can also override per-model defaults by passing a custom `AiGenerationConfig` when constructing a `LocalModelManifest` in `DefaultModels`.
+
+---
+
 ## Project Structure
 
 ```

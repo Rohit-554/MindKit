@@ -40,16 +40,27 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("mindkit-release.jks")
+            storePassword = localProps.getProperty("mindkit.keystore.storePassword")
+            keyAlias = localProps.getProperty("mindkit.keystore.keyAlias")
+            keyPassword = localProps.getProperty("mindkit.keystore.keyPassword")
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
